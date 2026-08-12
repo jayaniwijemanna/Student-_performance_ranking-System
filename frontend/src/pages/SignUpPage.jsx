@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { User, Mail, Lock, Building, IdCard, AlertCircle, ArrowRight, BookOpen } from 'lucide-react';
+import { User, Mail, Lock, Building, IdCard, AlertCircle, ArrowRight, BookOpen, Layers } from 'lucide-react';
 
 export default function SignUpPage({ onNavigate }) {
   const { signUp, loading, error } = useAuth();
@@ -12,6 +12,40 @@ export default function SignUpPage({ onNavigate }) {
   const [department, setDepartment] = useState('Computer Science');
   const [staffOrStudentId, setStaffOrStudentId] = useState('');
 
+  // Batch Selection State for Students
+  const [batches, setBatches] = useState([]);
+  const [selectedBatchId, setSelectedBatchId] = useState('');
+  const [selectedBatchCode, setSelectedBatchCode] = useState('');
+
+  useEffect(() => {
+    fetchBatches();
+  }, []);
+
+  const fetchBatches = async () => {
+    try {
+      const res = await fetch('/api/batches');
+      if (res.ok) {
+        const data = await res.json();
+        setBatches(data);
+        if (data.length > 0) {
+          setSelectedBatchId(data[0].id);
+          setSelectedBatchCode(data[0].batchCode);
+        }
+      }
+    } catch (e) {
+      console.error('Failed to fetch batches:', e);
+    }
+  };
+
+  const handleBatchChange = (e) => {
+    const bId = e.target.value;
+    setSelectedBatchId(bId);
+    const found = batches.find(b => b.id === bId);
+    if (found) {
+      setSelectedBatchCode(found.batchCode);
+    }
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     try {
@@ -21,7 +55,9 @@ export default function SignUpPage({ onNavigate }) {
         password,
         role,
         department,
-        staffOrStudentId
+        staffOrStudentId,
+        batchId: role === 'STUDENT' ? selectedBatchId : null,
+        batchCode: role === 'STUDENT' ? selectedBatchCode : null
       });
       onNavigate('dashboard');
     } catch (err) {
@@ -76,7 +112,7 @@ export default function SignUpPage({ onNavigate }) {
                 type="text"
                 className="form-control"
                 style={{ paddingLeft: '2.5rem' }}
-                placeholder="Dr. Amal Perera"
+                placeholder={role === 'STUDENT' ? 'Amal Perera' : 'Dr. Amal Perera'}
                 value={name}
                 onChange={(e) => setName(e.target.value)}
                 required
@@ -101,6 +137,34 @@ export default function SignUpPage({ onNavigate }) {
               <Mail size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)' }} />
             </div>
           </div>
+
+          {/* Student Batch Selector */}
+          {role === 'STUDENT' && (
+            <div className="form-group">
+              <label className="form-label" htmlFor="signup-batch">Enrolled Batch *</label>
+              <div style={{ position: 'relative' }}>
+                <select
+                  id="signup-batch"
+                  className="form-control"
+                  style={{ paddingLeft: '2.5rem' }}
+                  value={selectedBatchId}
+                  onChange={handleBatchChange}
+                  required
+                >
+                  {batches.length === 0 ? (
+                    <option value="">No active batches found</option>
+                  ) : (
+                    batches.map((b) => (
+                      <option key={b.id} value={b.id}>
+                        {b.batchCode} — {b.batchName} ({b.courseCode})
+                      </option>
+                    ))
+                  )}
+                </select>
+                <Layers size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-light)' }} />
+              </div>
+            </div>
+          )}
 
           <div className="form-group">
             <label className="form-label" htmlFor="signup-password">Password</label>
@@ -144,7 +208,7 @@ export default function SignUpPage({ onNavigate }) {
                   type="text"
                   className="form-control"
                   style={{ paddingLeft: '2.5rem' }}
-                  placeholder="e.g. ST001 / LEC05"
+                  placeholder={role === 'STUDENT' ? 'e.g. ST001' : 'e.g. LEC05'}
                   value={staffOrStudentId}
                   onChange={(e) => setStaffOrStudentId(e.target.value)}
                 />

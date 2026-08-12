@@ -12,6 +12,8 @@ public class UserDto {
     private Role role;
     private String department;
     private String staffOrStudentId;
+    private String batchId;
+    private String batchCode;
     private LocalDateTime createdAt;
 
     public UserDto() {}
@@ -23,6 +25,8 @@ public class UserDto {
         this.role = user.getRole();
         this.department = user.getDepartment();
         this.staffOrStudentId = user.getStaffOrStudentId();
+        this.batchId = user.getBatchId();
+        this.batchCode = user.getBatchCode();
         this.createdAt = user.getCreatedAt();
     }
 
@@ -72,6 +76,22 @@ public class UserDto {
 
     public void setStaffOrStudentId(String staffOrStudentId) {
         this.staffOrStudentId = staffOrStudentId;
+    }
+
+    public String getBatchId() {
+        return batchId;
+    }
+
+    public void setBatchId(String batchId) {
+        this.batchId = batchId;
+    }
+
+    public String getBatchCode() {
+        return batchCode;
+    }
+
+    public void setBatchCode(String batchCode) {
+        this.batchCode = batchCode;
     }
 
     public LocalDateTime getCreatedAt() {

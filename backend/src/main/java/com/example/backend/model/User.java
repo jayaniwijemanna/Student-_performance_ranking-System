@@ -25,6 +25,10 @@ public class User {
 
     private String staffOrStudentId;
 
+    private String batchId;
+
+    private String batchCode;
+
     private LocalDateTime createdAt;
 
     public User() {
@@ -95,6 +99,22 @@ public class User {
 
     public void setStaffOrStudentId(String staffOrStudentId) {
         this.staffOrStudentId = staffOrStudentId;
+    }
+
+    public String getBatchId() {
+        return batchId;
+    }
+
+    public void setBatchId(String batchId) {
+        this.batchId = batchId;
+    }
+
+    public String getBatchCode() {
+        return batchCode;
+    }
+
+    public void setBatchCode(String batchCode) {
+        this.batchCode = batchCode;
     }
 
     public LocalDateTime getCreatedAt() {

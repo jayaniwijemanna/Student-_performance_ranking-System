@@ -1,17 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import CourseManager from '../components/CourseManager';
+import BatchManager from '../components/BatchManager';
 import { 
   Users, 
   ShieldCheck, 
   BookOpen, 
   Database, 
-  Activity, 
   Award, 
   AlertTriangle, 
   PlusCircle, 
   Search,
   Layers,
-  CheckCircle2
+  CheckCircle2,
+  FolderPlus
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -20,6 +22,9 @@ export default function DashboardPage() {
   const [mongoHealth, setMongoHealth] = useState(null);
   const [loadingUsers, setLoadingUsers] = useState(false);
   const [activeRoleFilter, setActiveRoleFilter] = useState('ALL');
+
+  // Admin Sub-Tab State
+  const [adminTab, setAdminTab] = useState('users'); // 'users' | 'courses' | 'batches'
 
   useEffect(() => {
     fetchMongoHealth();
@@ -145,76 +150,131 @@ export default function DashboardPage() {
             </div>
           </div>
 
-          {/* User Directory Table */}
-          <div className="scholastic-card">
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
-              <div>
-                <h3 style={{ fontSize: '1.2rem', marginBottom: '0.2rem' }}>User Directory & Role Management</h3>
-                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
-                  All accounts persisted in local MongoDB <code>{mongoHealth?.database || 'student_performance_ranking_db'}.users</code> collection
-                </p>
+          {/* Admin Navigation Tabs */}
+          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
+            <button 
+              className={`btn ${adminTab === 'users' ? 'btn-primary' : 'btn-outlined'}`}
+              onClick={() => setAdminTab('users')}
+              id="admin-tab-users"
+            >
+              <Users size={16} />
+              User Directory
+            </button>
+
+            <button 
+              className={`btn ${adminTab === 'courses' ? 'btn-primary' : 'btn-outlined'}`}
+              onClick={() => setAdminTab('courses')}
+              id="admin-tab-courses"
+            >
+              <BookOpen size={16} />
+              Course Management
+            </button>
+
+            <button 
+              className={`btn ${adminTab === 'batches' ? 'btn-primary' : 'btn-outlined'}`}
+              onClick={() => setAdminTab('batches')}
+              id="admin-tab-batches"
+            >
+              <Layers size={16} />
+              Batch Management
+            </button>
+          </div>
+
+          {/* Tab Content: Users Directory */}
+          {adminTab === 'users' && (
+            <div className="scholastic-card">
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
+                <div>
+                  <h3 style={{ fontSize: '1.2rem', marginBottom: '0.2rem' }}>User Directory & Role Management</h3>
+                  <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)' }}>
+                    All accounts persisted in local MongoDB <code>{mongoHealth?.database || 'student_performance_ranking_db'}.users</code> collection
+                  </p>
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  {['ALL', 'ADMIN', 'LECTURER', 'STUDENT'].map((r) => (
+                    <button
+                      key={r}
+                      className={`btn btn-sm ${activeRoleFilter === r ? 'btn-primary' : 'btn-outlined'}`}
+                      onClick={() => setActiveRoleFilter(r)}
+                      id={`filter-role-${r.toLowerCase()}`}
+                    >
+                      {r}
+                    </button>
+                  ))}
+                </div>
               </div>
 
-              {/* Role Filters */}
-              <div style={{ display: 'flex', gap: '0.4rem' }}>
-                {['ALL', 'ADMIN', 'LECTURER', 'STUDENT'].map((r) => (
-                  <button
-                    key={r}
-                    className={`btn btn-sm ${activeRoleFilter === r ? 'btn-primary' : 'btn-outlined'}`}
-                    onClick={() => setActiveRoleFilter(r)}
-                    id={`filter-role-${r.toLowerCase()}`}
-                  >
-                    {r}
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="scholastic-table-container">
-              <table className="scholastic-table">
-                <thead>
-                  <tr>
-                    <th>Name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Department</th>
-                    <th>ID Reference</th>
-                    <th>Date Registered</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {loadingUsers ? (
+              <div className="scholastic-table-container">
+                <table className="scholastic-table">
+                  <thead>
                     <tr>
-                      <td colSpan="6" style={{ textAlign: 'center', padding: '2rem' }}>Loading user directory...</td>
+                      <th>Name</th>
+                      <th>Email</th>
+                      <th>Role</th>
+                      <th>Department</th>
+                      <th>Batch / Class</th>
+                      <th>ID Reference</th>
+                      <th>Date Registered</th>
                     </tr>
-                  ) : filteredUsers.length === 0 ? (
-                    <tr>
-                      <td colSpan="6" style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
-                        No accounts found for role: {activeRoleFilter}
-                      </td>
-                    </tr>
-                  ) : (
-                    filteredUsers.map((u) => (
-                      <tr key={u.id}>
-                        <td style={{ fontWeight: 600 }}>{u.name}</td>
-                        <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{u.email}</td>
-                        <td>
-                          <span className={`badge-role ${u.role === 'ADMIN' ? 'badge-admin' : u.role === 'LECTURER' ? 'badge-lecturer' : 'badge-student'}`}>
-                            {u.role}
-                          </span>
-                        </td>
-                        <td>{u.department || 'N/A'}</td>
-                        <td>{u.staffOrStudentId || 'N/A'}</td>
-                        <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                          {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Initial Seed'}
+                  </thead>
+                  <tbody>
+                    {loadingUsers ? (
+                      <tr>
+                        <td colSpan="7" style={{ textAlign: 'center', padding: '2rem' }}>Loading user directory...</td>
+                      </tr>
+                    ) : filteredUsers.length === 0 ? (
+                      <tr>
+                        <td colSpan="7" style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
+                          No accounts found for role: {activeRoleFilter}
                         </td>
                       </tr>
-                    ))
-                  )}
-                </tbody>
-              </table>
+                    ) : (
+                      filteredUsers.map((u) => (
+                        <tr key={u.id}>
+                          <td style={{ fontWeight: 600 }}>{u.name}</td>
+                          <td style={{ fontFamily: 'monospace', fontSize: '0.85rem' }}>{u.email}</td>
+                          <td>
+                            <span className={`badge-role ${u.role === 'ADMIN' ? 'badge-admin' : u.role === 'LECTURER' ? 'badge-lecturer' : 'badge-student'}`}>
+                              {u.role}
+                            </span>
+                          </td>
+                          <td>{u.department || 'N/A'}</td>
+                          <td>
+                            {u.batchCode ? (
+                              <span className="badge-role badge-lecturer" style={{ fontSize: '0.75rem' }}>
+                                {u.batchCode}
+                              </span>
+                            ) : (
+                              'N/A'
+                            )}
+                          </td>
+                          <td>{u.staffOrStudentId || 'N/A'}</td>
+                          <td style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
+                            {u.createdAt ? new Date(u.createdAt).toLocaleDateString() : 'Initial Seed'}
+                          </td>
+                        </tr>
+                      ))
+                    )}
+                  </tbody>
+                </table>
+              </div>
             </div>
-          </div>
+          )}
+
+          {/* Tab Content: Course Management */}
+          {adminTab === 'courses' && (
+            <div className="scholastic-card">
+              <CourseManager />
+            </div>
+          )}
+
+          {/* Tab Content: Batch Management */}
+          {adminTab === 'batches' && (
+            <div className="scholastic-card">
+              <BatchManager />
+            </div>
+          )}
         </>
       )}
 

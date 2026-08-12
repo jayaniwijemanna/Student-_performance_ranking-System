@@ -51,6 +51,8 @@ public class AuthService {
         user.setRole(userRole);
         user.setDepartment(request.getDepartment() != null ? request.getDepartment() : "General Academic");
         user.setStaffOrStudentId(request.getStaffOrStudentId());
+        user.setBatchId(request.getBatchId());
+        user.setBatchCode(request.getBatchCode());
 
         User savedUser = userRepository.save(user);
         String mockToken = "scholastic-token-" + UUID.randomUUID().toString();

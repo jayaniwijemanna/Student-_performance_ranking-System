@@ -9,16 +9,20 @@ public class SignUpRequest {
     private Role role;
     private String department;
     private String staffOrStudentId;
+    private String batchId;
+    private String batchCode;
 
     public SignUpRequest() {}
 
-    public SignUpRequest(String name, String email, String password, Role role, String department, String staffOrStudentId) {
+    public SignUpRequest(String name, String email, String password, Role role, String department, String staffOrStudentId, String batchId, String batchCode) {
         this.name = name;
         this.email = email;
         this.password = password;
         this.role = role;
         this.department = department;
         this.staffOrStudentId = staffOrStudentId;
+        this.batchId = batchId;
+        this.batchCode = batchCode;
     }
 
     public String getName() {
@@ -67,5 +71,21 @@ public class SignUpRequest {
 
     public void setStaffOrStudentId(String staffOrStudentId) {
         this.staffOrStudentId = staffOrStudentId;
+    }
+
+    public String getBatchId() {
+        return batchId;
+    }
+
+    public void setBatchId(String batchId) {
+        this.batchId = batchId;
+    }
+
+    public String getBatchCode() {
+        return batchCode;
+    }
+
+    public void setBatchCode(String batchCode) {
+        this.batchCode = batchCode;
     }
 }
