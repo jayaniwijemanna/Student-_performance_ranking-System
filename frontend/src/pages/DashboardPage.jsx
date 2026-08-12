@@ -4,18 +4,15 @@ import CourseManager from '../components/CourseManager';
 import BatchManager from '../components/BatchManager';
 import LecturerManager from '../components/LecturerManager';
 import StudentManager from '../components/StudentManager';
+import LecturerDashboard from '../components/LecturerDashboard';
+import StudentDashboard from '../components/StudentDashboard';
 import { 
   Users, 
   ShieldCheck, 
   BookOpen, 
   Database, 
-  Award, 
-  AlertTriangle, 
-  PlusCircle, 
-  Search,
   Layers,
   CheckCircle2,
-  UserCheck,
   GraduationCap
 } from 'lucide-react';
 
@@ -88,7 +85,7 @@ export default function DashboardPage() {
               Welcome, {user?.name}
             </h2>
             <p style={{ color: '#CBD5E1', fontSize: '0.9rem' }}>
-              Department: {user?.department || 'Academic Administration'} &bull; Staff/ID: {user?.staffOrStudentId || 'N/A'}
+              Department: {user?.department || 'Academic Administration'} &bull; Staff/Student ID: {user?.staffOrStudentId || 'N/A'} {user?.batchCode ? `• Batch: ${user.batchCode}` : ''}
             </p>
           </div>
 
@@ -104,7 +101,7 @@ export default function DashboardPage() {
         </div>
       </div>
 
-      {/* Admin Specific View */}
+      {/* Admin View */}
       {user?.role === 'ADMIN' && (
         <>
           {/* Metrics Grid */}
@@ -321,78 +318,14 @@ export default function DashboardPage() {
         </>
       )}
 
-      {/* Lecturer / Student Specific View */}
-      {user?.role !== 'ADMIN' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1.5rem' }}>
-          <div className="scholastic-card">
-            <h3 style={{ fontSize: '1.25rem', marginBottom: '1rem' }}>
-              Academic Operations & Ranking Engine
-            </h3>
-            <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
-              Welcome to the <strong>Student Performance Ranking System</strong>. Use the operations below to manage student records and trigger AVL Tree self-balancing analysis.
-            </p>
+      {/* Lecturer View */}
+      {user?.role === 'LECTURER' && (
+        <LecturerDashboard />
+      )}
 
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-              <div style={{ border: '1px solid var(--color-border)', borderRadius: '12px', padding: '1.25rem', background: '#F8FAFC' }}>
-                <div style={{ color: 'var(--color-primary)', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <PlusCircle size={18} /> Add Student Record
-                </div>
-                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  Enter module marks, exam scores, and attendance percentage.
-                </p>
-              </div>
-
-              <div style={{ border: '1px solid var(--color-border)', borderRadius: '12px', padding: '1.25rem', background: '#F8FAFC' }}>
-                <div style={{ color: 'var(--color-secondary-hover)', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Award size={18} /> AVL Tree Rankings
-                </div>
-                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  Reverse in-order traversal ($O(n)$) to rank top performers.
-                </p>
-              </div>
-
-              <div style={{ border: '1px solid var(--color-border)', borderRadius: '12px', padding: '1.25rem', background: '#F8FAFC' }}>
-                <div style={{ color: 'var(--color-danger)', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <AlertTriangle size={18} /> At-Risk Detection
-                </div>
-                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  Identify students with scores &lt; 50 or attendance &lt; 70%.
-                </p>
-              </div>
-
-              <div style={{ border: '1px solid var(--color-border)', borderRadius: '12px', padding: '1.25rem', background: '#F8FAFC' }}>
-                <div style={{ color: 'var(--color-tertiary)', fontWeight: 700, marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                  <Search size={18} /> AVL Search ($O(\log n)$)
-                </div>
-                <p style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>
-                  Fast search student nodes by performance score.
-                </p>
-              </div>
-            </div>
-          </div>
-
-          <div className="scholastic-card">
-            <h3 style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>User Session</h3>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem', fontSize: '0.85rem' }}>
-              <div>
-                <span style={{ color: 'var(--color-text-muted)' }}>Full Name:</span>
-                <div style={{ fontWeight: 600 }}>{user?.name}</div>
-              </div>
-              <div>
-                <span style={{ color: 'var(--color-text-muted)' }}>Email:</span>
-                <div style={{ fontWeight: 600 }}>{user?.email}</div>
-              </div>
-              <div>
-                <span style={{ color: 'var(--color-text-muted)' }}>Account Role:</span>
-                <div>
-                  <span className={`badge-role ${user?.role === 'ADMIN' ? 'badge-admin' : user?.role === 'LECTURER' ? 'badge-lecturer' : 'badge-student'}`}>
-                    {user?.role}
-                  </span>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+      {/* Student View */}
+      {user?.role === 'STUDENT' && (
+        <StudentDashboard />
       )}
     </div>
   );
