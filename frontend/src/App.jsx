@@ -1,96 +1,51 @@
-import React, { useState, useEffect } from 'react';
-import { Activity, RefreshCw, Layers, CheckCircle2, XCircle } from 'lucide-react';
+import React, { useState } from 'react';
+import { AuthProvider, useAuth } from './context/AuthContext';
+import Navbar from './components/Navbar';
+import SignInPage from './pages/SignInPage';
+import SignUpPage from './pages/SignUpPage';
+import DashboardPage from './pages/DashboardPage';
 
-export default function App() {
-  const [healthData, setHealthData] = useState(null);
-  const [status, setStatus] = useState('checking');
-  const [loading, setLoading] = useState(false);
-  const [latency, setLatency] = useState(null);
+function MainLayout() {
+  const { user } = useAuth();
+  const [currentPage, setCurrentPage] = useState(() => (user ? 'dashboard' : 'signin'));
 
-  const checkHealth = async () => {
-    setLoading(true);
-    const start = performance.now();
-    try {
-      const res = await fetch('/api/health');
-      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
-      const data = await res.json();
-      setLatency(Math.round(performance.now() - start));
-      setHealthData(data);
-      setStatus('online');
-    } catch (err) {
-      setStatus('offline');
-      setHealthData({
-        error: "Cannot reach Spring Boot backend",
-        message: err.message,
-        hint: "Make sure Spring Boot backend is running on http://localhost:8080"
-      });
-    } finally {
-      setLoading(false);
-    }
+  const handleNavigate = (page) => {
+    setCurrentPage(page);
   };
 
-  useEffect(() => {
-    checkHealth();
-  }, []);
-
   return (
-    <div className="app-container">
-      <header className="header">
-        <div className="logo-group">
-          <div className="logo-badge">
-            <Layers size={26} color="#ffffff" />
-          </div>
-          <div>
-            <h1 className="brand-title">Application Dashboard</h1>
-            <p className="brand-subtitle">Spring Boot Backend & React Vite Frontend</p>
-          </div>
-        </div>
+    <div className="scholastic-app">
+      <Navbar onNavigate={handleNavigate} currentPage={currentPage} />
 
-        <button className="btn btn-secondary" onClick={checkHealth} disabled={loading} id="btn-check-health">
-          <RefreshCw size={16} className={loading ? "spin" : ""} />
-          Check Health
-        </button>
-      </header>
-
-      <main>
-        <div className="card">
-          <div className="card-header">
-            <h2 className="card-title">
-              <span className="icon-box"><Activity size={20} /></span>
-              Backend Status: GET /api/health
-            </h2>
-            
-            {status === 'online' && (
-              <span className="badge badge-success" id="status-badge-online">
-                <span className="pulse-dot"></span>
-                Backend Online {latency && `(${latency}ms)`}
-              </span>
-            )}
-            {status === 'offline' && (
-              <span className="badge badge-danger" id="status-badge-offline">
-                <XCircle size={14} />
-                Backend Offline
-              </span>
-            )}
-            {status === 'checking' && (
-              <span className="badge badge-warning" id="status-badge-checking">
-                <RefreshCw size={14} className="spin" />
-                Connecting...
-              </span>
-            )}
-          </div>
-
-          <div className="code-window" style={{ marginTop: '1rem' }}>
-            <div className="code-header">
-              <span>Response Payload</span>
-              <span>{status === 'online' ? '200 OK' : 'Service Check'}</span>
-            </div>
-            <pre className="code-body" id="health-response-body">
-              {healthData ? JSON.stringify(healthData, null, 2) : 'Loading status...'}
-            </pre>
-          </div>
-        </div>
+      <main style={{ flex: 1 }}>
+        {user ? (
+          <DashboardPage />
+        ) : currentPage === 'signup' ? (
+          <SignUpPage onNavigate={handleNavigate} />
+        ) : (
+          <SignInPage onNavigate={handleNavigate} />
+        )}
       </main>
+
+      <footer style={{ 
+        backgroundColor: 'var(--color-surface)', 
+        borderTop: '1px solid var(--color-border)', 
+        padding: '1.25rem 2rem', 
+        textAlign: 'center', 
+        fontSize: '0.8rem', 
+        color: 'var(--color-text-muted)',
+        marginTop: '3rem' 
+      }}>
+        <p><strong>Scholastic Insight</strong> &bull; Student Performance Ranking System &bull; Powered by Spring Boot & React Vite</p>
+      </footer>
     </div>
+  );
+}
+
+export default function App() {
+  return (
+    <AuthProvider>
+      <MainLayout />
+    </AuthProvider>
   );
 }
