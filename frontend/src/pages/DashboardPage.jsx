@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import CourseManager from '../components/CourseManager';
 import BatchManager from '../components/BatchManager';
+import LecturerManager from '../components/LecturerManager';
+import StudentManager from '../components/StudentManager';
 import { 
   Users, 
   ShieldCheck, 
@@ -13,7 +15,8 @@ import {
   Search,
   Layers,
   CheckCircle2,
-  FolderPlus
+  UserCheck,
+  GraduationCap
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -24,7 +27,7 @@ export default function DashboardPage() {
   const [activeRoleFilter, setActiveRoleFilter] = useState('ALL');
 
   // Admin Sub-Tab State
-  const [adminTab, setAdminTab] = useState('users'); // 'users' | 'courses' | 'batches'
+  const [adminTab, setAdminTab] = useState('lecturers'); // 'lecturers' | 'students' | 'courses' | 'batches' | 'users'
 
   useEffect(() => {
     fetchMongoHealth();
@@ -105,7 +108,7 @@ export default function DashboardPage() {
       {user?.role === 'ADMIN' && (
         <>
           {/* Metrics Grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
             <div className="scholastic-card" style={{ padding: '1.25rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Total Registered Users</span>
@@ -142,7 +145,7 @@ export default function DashboardPage() {
             <div className="scholastic-card" style={{ padding: '1.25rem' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
                 <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Students</span>
-                <Users size={20} style={{ color: 'var(--color-primary)' }} />
+                <GraduationCap size={20} style={{ color: 'var(--color-primary)' }} />
               </div>
               <div style={{ fontSize: '1.75rem', fontWeight: 800, color: 'var(--color-primary)' }}>
                 {studentCount}
@@ -151,14 +154,23 @@ export default function DashboardPage() {
           </div>
 
           {/* Admin Navigation Tabs */}
-          <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem' }}>
+          <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem', flexWrap: 'wrap' }}>
             <button 
-              className={`btn ${adminTab === 'users' ? 'btn-primary' : 'btn-outlined'}`}
-              onClick={() => setAdminTab('users')}
-              id="admin-tab-users"
+              className={`btn ${adminTab === 'lecturers' ? 'btn-primary' : 'btn-outlined'}`}
+              onClick={() => setAdminTab('lecturers')}
+              id="admin-tab-lecturers"
             >
-              <Users size={16} />
-              User Directory
+              <BookOpen size={16} />
+              Lecturer Management
+            </button>
+
+            <button 
+              className={`btn ${adminTab === 'students' ? 'btn-primary' : 'btn-outlined'}`}
+              onClick={() => setAdminTab('students')}
+              id="admin-tab-students"
+            >
+              <GraduationCap size={16} />
+              Student Management
             </button>
 
             <button 
@@ -178,7 +190,44 @@ export default function DashboardPage() {
               <Layers size={16} />
               Batch Management
             </button>
+
+            <button 
+              className={`btn ${adminTab === 'users' ? 'btn-primary' : 'btn-outlined'}`}
+              onClick={() => setAdminTab('users')}
+              id="admin-tab-users"
+            >
+              <Users size={16} />
+              All Users Directory
+            </button>
           </div>
+
+          {/* Tab Content: Lecturer Management */}
+          {adminTab === 'lecturers' && (
+            <div className="scholastic-card">
+              <LecturerManager />
+            </div>
+          )}
+
+          {/* Tab Content: Student Management */}
+          {adminTab === 'students' && (
+            <div className="scholastic-card">
+              <StudentManager />
+            </div>
+          )}
+
+          {/* Tab Content: Course Management */}
+          {adminTab === 'courses' && (
+            <div className="scholastic-card">
+              <CourseManager />
+            </div>
+          )}
+
+          {/* Tab Content: Batch Management */}
+          {adminTab === 'batches' && (
+            <div className="scholastic-card">
+              <BatchManager />
+            </div>
+          )}
 
           {/* Tab Content: Users Directory */}
           {adminTab === 'users' && (
@@ -245,6 +294,14 @@ export default function DashboardPage() {
                               <span className="badge-role badge-lecturer" style={{ fontSize: '0.75rem' }}>
                                 {u.batchCode}
                               </span>
+                            ) : u.assignedBatchCodes && u.assignedBatchCodes.length > 0 ? (
+                              <div style={{ display: 'flex', gap: '0.2rem', flexWrap: 'wrap' }}>
+                                {u.assignedBatchCodes.map((bc, i) => (
+                                  <span key={i} className="badge-role badge-lecturer" style={{ fontSize: '0.7rem' }}>
+                                    {bc}
+                                  </span>
+                                ))}
+                              </div>
                             ) : (
                               'N/A'
                             )}
@@ -259,20 +316,6 @@ export default function DashboardPage() {
                   </tbody>
                 </table>
               </div>
-            </div>
-          )}
-
-          {/* Tab Content: Course Management */}
-          {adminTab === 'courses' && (
-            <div className="scholastic-card">
-              <CourseManager />
-            </div>
-          )}
-
-          {/* Tab Content: Batch Management */}
-          {adminTab === 'batches' && (
-            <div className="scholastic-card">
-              <BatchManager />
             </div>
           )}
         </>

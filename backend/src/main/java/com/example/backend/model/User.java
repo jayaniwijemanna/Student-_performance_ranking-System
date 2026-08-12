@@ -5,6 +5,8 @@ import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Document(collection = "users")
 public class User {
@@ -28,6 +30,11 @@ public class User {
     private String batchId;
 
     private String batchCode;
+
+    // For Lecturers: multiple assigned batches
+    private List<String> assignedBatchIds = new ArrayList<>();
+
+    private List<String> assignedBatchCodes = new ArrayList<>();
 
     private LocalDateTime createdAt;
 
@@ -115,6 +122,22 @@ public class User {
 
     public void setBatchCode(String batchCode) {
         this.batchCode = batchCode;
+    }
+
+    public List<String> getAssignedBatchIds() {
+        return assignedBatchIds;
+    }
+
+    public void setAssignedBatchIds(List<String> assignedBatchIds) {
+        this.assignedBatchIds = assignedBatchIds != null ? assignedBatchIds : new ArrayList<>();
+    }
+
+    public List<String> getAssignedBatchCodes() {
+        return assignedBatchCodes;
+    }
+
+    public void setAssignedBatchCodes(List<String> assignedBatchCodes) {
+        this.assignedBatchCodes = assignedBatchCodes != null ? assignedBatchCodes : new ArrayList<>();
     }
 
     public LocalDateTime getCreatedAt() {

@@ -53,6 +53,8 @@ public class AuthService {
         user.setStaffOrStudentId(request.getStaffOrStudentId());
         user.setBatchId(request.getBatchId());
         user.setBatchCode(request.getBatchCode());
+        if (request.getAssignedBatchIds() != null) user.setAssignedBatchIds(request.getAssignedBatchIds());
+        if (request.getAssignedBatchCodes() != null) user.setAssignedBatchCodes(request.getAssignedBatchCodes());
 
         User savedUser = userRepository.save(user);
         String mockToken = "scholastic-token-" + UUID.randomUUID().toString();

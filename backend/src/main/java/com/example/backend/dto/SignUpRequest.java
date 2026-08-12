@@ -2,6 +2,8 @@ package com.example.backend.dto;
 
 import com.example.backend.model.Role;
 
+import java.util.List;
+
 public class SignUpRequest {
     private String name;
     private String email;
@@ -11,6 +13,8 @@ public class SignUpRequest {
     private String staffOrStudentId;
     private String batchId;
     private String batchCode;
+    private List<String> assignedBatchIds;
+    private List<String> assignedBatchCodes;
 
     public SignUpRequest() {}
 
@@ -87,5 +91,21 @@ public class SignUpRequest {
 
     public void setBatchCode(String batchCode) {
         this.batchCode = batchCode;
+    }
+
+    public List<String> getAssignedBatchIds() {
+        return assignedBatchIds;
+    }
+
+    public void setAssignedBatchIds(List<String> assignedBatchIds) {
+        this.assignedBatchIds = assignedBatchIds;
+    }
+
+    public List<String> getAssignedBatchCodes() {
+        return assignedBatchCodes;
+    }
+
+    public void setAssignedBatchCodes(List<String> assignedBatchCodes) {
+        this.assignedBatchCodes = assignedBatchCodes;
     }
 }

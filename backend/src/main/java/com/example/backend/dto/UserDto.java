@@ -4,6 +4,7 @@ import com.example.backend.model.Role;
 import com.example.backend.model.User;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 public class UserDto {
     private String id;
@@ -14,6 +15,8 @@ public class UserDto {
     private String staffOrStudentId;
     private String batchId;
     private String batchCode;
+    private List<String> assignedBatchIds;
+    private List<String> assignedBatchCodes;
     private LocalDateTime createdAt;
 
     public UserDto() {}
@@ -27,6 +30,8 @@ public class UserDto {
         this.staffOrStudentId = user.getStaffOrStudentId();
         this.batchId = user.getBatchId();
         this.batchCode = user.getBatchCode();
+        this.assignedBatchIds = user.getAssignedBatchIds();
+        this.assignedBatchCodes = user.getAssignedBatchCodes();
         this.createdAt = user.getCreatedAt();
     }
 
@@ -92,6 +97,22 @@ public class UserDto {
 
     public void setBatchCode(String batchCode) {
         this.batchCode = batchCode;
+    }
+
+    public List<String> getAssignedBatchIds() {
+        return assignedBatchIds;
+    }
+
+    public void setAssignedBatchIds(List<String> assignedBatchIds) {
+        this.assignedBatchIds = assignedBatchIds;
+    }
+
+    public List<String> getAssignedBatchCodes() {
+        return assignedBatchCodes;
+    }
+
+    public void setAssignedBatchCodes(List<String> assignedBatchCodes) {
+        this.assignedBatchCodes = assignedBatchCodes;
     }
 
     public LocalDateTime getCreatedAt() {
