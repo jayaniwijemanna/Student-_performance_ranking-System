@@ -157,25 +157,87 @@ export default function AVLTreeRankings() {
           </div>
         </div>
 
-        {/* Child Subtree Connectors */}
+        {/* Visual Tree Connector Lines linking Parent to Child Nodes */}
         {(node.left || node.right) && (
-          <div style={{ display: 'flex', gap: '2rem', marginTop: '1.25rem', position: 'relative' }}>
-            {node.left && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--color-primary)', background: '#E2E8F0', padding: '0.1rem 0.5rem', borderRadius: '9999px', marginBottom: '0.2rem' }}>
-                  Left Subtree (Score &lt; {node.performanceScore})
-                </span>
-                {renderTreeNode(node.left, false)}
-              </div>
+          <div style={{ width: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+            {/* Top Vertical Connector Stem dropping from Parent Node */}
+            <div style={{
+              width: '2px',
+              height: '18px',
+              backgroundColor: '#64748B',
+              zIndex: 1
+            }} />
+
+            {/* Horizontal Branch Line connecting Left and Right Subtrees */}
+            {node.left && node.right && (
+              <div style={{
+                height: '2px',
+                width: '60%',
+                backgroundColor: '#64748B',
+                zIndex: 1
+              }} />
             )}
-            {node.right && (
-              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <span style={{ fontSize: '0.7rem', fontWeight: 800, color: 'var(--color-tertiary)', background: '#E2E8F0', padding: '0.1rem 0.5rem', borderRadius: '9999px', marginBottom: '0.2rem' }}>
-                  Right Subtree (Score &gt; {node.performanceScore})
-                </span>
-                {renderTreeNode(node.right, false)}
-              </div>
-            )}
+
+            {/* Subtree Container */}
+            <div style={{ display: 'flex', gap: '2rem', position: 'relative' }}>
+              {node.left && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                  {/* Left Vertical Connector Line */}
+                  <div style={{
+                    width: '2px',
+                    height: '14px',
+                    backgroundColor: '#3B82F6',
+                    zIndex: 1
+                  }} />
+                  <span style={{ 
+                    fontSize: '0.68rem', 
+                    fontWeight: 800, 
+                    color: '#2563EB', 
+                    background: '#DBEAFE', 
+                    border: '1px solid #93C5FD',
+                    padding: '0.15rem 0.6rem', 
+                    borderRadius: '9999px', 
+                    marginBottom: '0.2rem',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}>
+                    ↙ Left Subtree (&lt; {node.performanceScore})
+                  </span>
+                  {renderTreeNode(node.left, false)}
+                </div>
+              )}
+
+              {node.right && (
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', position: 'relative' }}>
+                  {/* Right Vertical Connector Line */}
+                  <div style={{
+                    width: '2px',
+                    height: '14px',
+                    backgroundColor: '#8B5CF6',
+                    zIndex: 1
+                  }} />
+                  <span style={{ 
+                    fontSize: '0.68rem', 
+                    fontWeight: 800, 
+                    color: '#7C3AED', 
+                    background: '#EDE9FE', 
+                    border: '1px solid #C4B5FD',
+                    padding: '0.15rem 0.6rem', 
+                    borderRadius: '9999px', 
+                    marginBottom: '0.2rem',
+                    boxShadow: '0 1px 3px rgba(0,0,0,0.05)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.25rem'
+                  }}>
+                    ↘ Right Subtree (&gt; {node.performanceScore})
+                  </span>
+                  {renderTreeNode(node.right, false)}
+                </div>
+              )}
+            </div>
           </div>
         )}
       </div>

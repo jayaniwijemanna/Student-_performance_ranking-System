@@ -23,6 +23,8 @@ export default function PerformanceEvaluation() {
 
   // Form State
   const [modalBatchCode, setModalBatchCode] = useState('ALL');
+  const [selectedUserMongoId, setSelectedUserMongoId] = useState('');
+  const [selectedModuleMongoId, setSelectedModuleMongoId] = useState('');
   const [studentId, setStudentId] = useState('');
   const [studentName, setStudentName] = useState('');
   const [moduleCode, setModuleCode] = useState('');
@@ -97,10 +99,12 @@ export default function PerformanceEvaluation() {
 
     if (validStudents.length > 0) {
       const firstStd = validStudents[0];
+      setSelectedUserMongoId(firstStd.id);
       setStudentId(firstStd.staffOrStudentId && firstStd.staffOrStudentId.trim() !== '' ? firstStd.staffOrStudentId : (firstStd.email || firstStd.id));
       setStudentName(firstStd.name);
       setBatchCode(firstStd.batchCode || bCode);
     } else {
+      setSelectedUserMongoId('');
       setStudentId('');
       setStudentName('');
       setBatchCode(bCode);
@@ -108,9 +112,11 @@ export default function PerformanceEvaluation() {
 
     if (validModules.length > 0) {
       const firstMod = validModules[0];
+      setSelectedModuleMongoId(firstMod.id);
       setModuleCode(firstMod.moduleCode);
       setModuleName(firstMod.moduleName);
     } else {
+      setSelectedModuleMongoId('');
       setModuleCode('');
       setModuleName('');
     }
@@ -140,8 +146,9 @@ export default function PerformanceEvaluation() {
   };
 
   const handleStudentSelect = (e) => {
-    const selectedStdId = e.target.value;
-    const found = students.find(s => s.id === selectedStdId || s.staffOrStudentId === selectedStdId || s.email === selectedStdId);
+    const selectedStdMongoId = e.target.value;
+    setSelectedUserMongoId(selectedStdMongoId);
+    const found = students.find(s => s.id === selectedStdMongoId || s.staffOrStudentId === selectedStdMongoId || s.email === selectedStdMongoId);
     if (found) {
       setStudentId(found.staffOrStudentId && found.staffOrStudentId.trim() !== '' ? found.staffOrStudentId : (found.email || found.id));
       setStudentName(found.name);
@@ -151,6 +158,7 @@ export default function PerformanceEvaluation() {
 
   const handleModuleSelect = (e) => {
     const selectedMId = e.target.value;
+    setSelectedModuleMongoId(selectedMId);
     const found = modules.find(m => m.id === selectedMId || m.moduleCode === selectedMId);
     if (found) {
       setModuleCode(found.moduleCode);
@@ -454,7 +462,7 @@ export default function PerformanceEvaluation() {
                 <label className="form-label">Select Student *</label>
                 <select 
                   className="form-control"
-                  value={studentId}
+                  value={selectedUserMongoId}
                   onChange={handleStudentSelect}
                   required
                   id="modal-eval-student"
@@ -475,6 +483,7 @@ export default function PerformanceEvaluation() {
                 <label className="form-label">Select Subject / Module *</label>
                 <select 
                   className="form-control"
+                  value={selectedModuleMongoId}
                   onChange={handleModuleSelect}
                   required
                   id="modal-eval-module"
