@@ -128,8 +128,18 @@ public class PerformanceService {
         return rankedList;
     }
 
-    public List<AVLNode> searchByScore(double score) {
-        return avlTree.searchByScore(score);
+    public List<AVLNode> searchByScore(double score, String batchCode, String moduleCode) {
+        List<AVLNode> matches = avlTree.searchByScore(score);
+        List<AVLNode> filtered = new ArrayList<>();
+        for (AVLNode n : matches) {
+            boolean matchesBatch = (batchCode == null || batchCode.isEmpty() || "ALL".equalsIgnoreCase(batchCode) || batchCode.equals(n.getBatchCode()));
+            boolean matchesModule = (moduleCode == null || moduleCode.isEmpty() || "ALL".equalsIgnoreCase(moduleCode) || moduleCode.equals(n.getModuleCode()));
+
+            if (matchesBatch && matchesModule) {
+                filtered.add(n);
+            }
+        }
+        return filtered;
     }
 
     public List<AVLNode> getAtRiskStudents() {

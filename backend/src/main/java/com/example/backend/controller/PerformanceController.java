@@ -39,8 +39,11 @@ public class PerformanceController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<AVLNode>> searchByScore(@RequestParam double score) {
-        return ResponseEntity.ok(performanceService.searchByScore(score));
+    public ResponseEntity<List<AVLNode>> searchByScore(
+            @RequestParam double score,
+            @RequestParam(required = false) String batchCode,
+            @RequestParam(required = false) String moduleCode) {
+        return ResponseEntity.ok(performanceService.searchByScore(score, batchCode, moduleCode));
     }
 
     @GetMapping("/at-risk")

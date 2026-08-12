@@ -61,13 +61,17 @@ export default function AVLTreeRankings() {
   };
 
   const handleScoreSearch = async (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (!searchScore) {
       setSearchResults(null);
       return;
     }
     try {
-      const res = await fetch(`/api/performances/search?score=${searchScore}`);
+      let searchUrl = `/api/performances/search?score=${searchScore}`;
+      if (selectedBatchFilter !== 'ALL') searchUrl += `&batchCode=${selectedBatchFilter}`;
+      if (selectedModuleFilter !== 'ALL') searchUrl += `&moduleCode=${selectedModuleFilter}`;
+
+      const res = await fetch(searchUrl);
       if (res.ok) {
         const data = await res.json();
         setSearchResults(data);

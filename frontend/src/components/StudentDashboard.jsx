@@ -1,6 +1,20 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { BookOpen, Layers, Users, Award, Mail, Building, IdCard, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { 
+  BookOpen, 
+  Layers, 
+  Users, 
+  Award, 
+  Mail, 
+  Building, 
+  IdCard, 
+  AlertCircle, 
+  CheckCircle2, 
+  AlertTriangle,
+  TrendingUp,
+  Calculator,
+  ShieldCheck
+} from 'lucide-react';
 
 export default function StudentDashboard() {
   const { user } = useAuth();
@@ -8,10 +22,12 @@ export default function StudentDashboard() {
   const [batchInfo, setBatchInfo] = useState(null);
   const [lecturers, setLecturers] = useState([]);
   const [modules, setModules] = useState([]);
+  const [myPerformances, setMyPerformances] = useState([]);
+  const [batchRankings, setBatchRankings] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // Student Navigation Sub-Tab State
-  const [activeTab, setActiveTab] = useState('modules'); // 'modules' | 'batch' | 'lecturers'
+  // Student Navigation Sub-Tab State: 'performance' | 'modules' | 'batch' | 'lecturers'
+  const [activeTab, setActiveTab] = useState('performance');
 
   useEffect(() => {
     fetchStudentAcademicData();
@@ -20,16 +36,18 @@ export default function StudentDashboard() {
   const fetchStudentAcademicData = async () => {
     setLoading(true);
     try {
-      const [bRes, lRes, mRes] = await Promise.all([
+      const [bRes, lRes, mRes, pRes] = await Promise.all([
         fetch('/api/batches'),
         fetch('/api/users/role/LECTURER'),
-        fetch('/api/modules')
+        fetch('/api/modules'),
+        fetch('/api/performances/rankings')
       ]);
 
-      if (bRes.ok && lRes.ok && mRes.ok) {
+      if (bRes.ok && lRes.ok && mRes.ok && pRes.ok) {
         const bData = await bRes.json();
         const lData = await lRes.json();
         const mData = await mRes.json();
+        const pData = await pRes.json();
 
         // Match student batch
         const studentBatch = bData.find(b => b.batchCode === user?.batchCode || b.id === user?.batchId);
@@ -47,6 +65,18 @@ export default function StudentDashboard() {
           m.batchCode === user?.batchCode || m.batchId === user?.batchId
         );
         setModules(batchModules);
+
+        // Match student performance records in AVL tree
+        const stdId = user?.staffOrStudentId || user?.email || user?.id;
+        const myPerfs = pData.filter(p => 
+          p.studentId === stdId || 
+          p.studentId === user?.staffOrStudentId || 
+          p.studentId === user?.email ||
+          (p.studentName && user?.name && p.studentName.toLowerCase() === user.name.toLowerCase())
+        );
+
+        setMyPerformances(myPerfs);
+        setBatchRankings(pData);
       }
     } catch (err) {
       console.error('Failed to load student dashboard data:', err);
@@ -56,6 +86,14 @@ export default function StudentDashboard() {
   };
 
   const totalCredits = modules.reduce((sum, m) => sum + (m.credits || 0), 0);
+
+  // Overall Performance Statistics
+  const evaluatedCount = myPerformances.length;
+  const averageScore = evaluatedCount > 0
+    ? Math.round((myPerformances.reduce((acc, curr) => acc + curr.performanceScore, 0) / evaluatedCount) * 100) / 100
+    : 0;
+
+  const isAtRiskOverall = myPerformances.some(p => p.performanceScore < 50 || p.attendancePercentage < 70 || p.status === 'At Risk');
 
   return (
     <div>
@@ -71,6 +109,23 @@ export default function StudentDashboard() {
           </div>
           <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
             {batchInfo ? batchInfo.batchName : 'Student Batch Group'}
+          </span>
+        </div>
+
+        <div className="scholastic-card" style={{ padding: '1.25rem' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
+            <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Academic Standing</span>
+            {isAtRiskOverall ? (
+              <AlertTriangle size={20} style={{ color: 'var(--color-danger)' }} />
+            ) : (
+              <ShieldCheck size={20} style={{ color: 'var(--color-success)' }} />
+            )}
+          </div>
+          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: isAtRiskOverall ? 'var(--color-danger)' : 'var(--color-success)' }}>
+            {evaluatedCount === 0 ? 'Pending' : isAtRiskOverall ? 'At Risk' : 'Good Standing'}
+          </div>
+          <span style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>
+            Average Score: {averageScore > 0 ? `${averageScore}%` : 'N/A'}
           </span>
         </div>
 
@@ -104,6 +159,15 @@ export default function StudentDashboard() {
       {/* Student Navigation Tabs */}
       <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem', flexWrap: 'wrap' }}>
         <button 
+          className={`btn ${activeTab === 'performance' ? 'btn-primary' : 'btn-outlined'}`}
+          onClick={() => setActiveTab('performance')}
+          id="student-tab-performance"
+        >
+          <Award size={16} />
+          My Subject Performances & AVL Standing
+        </button>
+
+        <button 
           className={`btn ${activeTab === 'modules' ? 'btn-primary' : 'btn-outlined'}`}
           onClick={() => setActiveTab('modules')}
           id="student-tab-modules"
@@ -131,7 +195,153 @@ export default function StudentDashboard() {
         </button>
       </div>
 
-      {/* Tab Content 1: Enrolled Subjects & Modules */}
+      {/* Tab Content 1: My Subject Performances & AVL Standing */}
+      {activeTab === 'performance' && (
+        <div>
+          {/* Standing Highlight Area (Good Standing vs At-Risk Area Callout) */}
+          <div className="scholastic-card" style={{ 
+            marginBottom: '1.75rem',
+            borderLeft: isAtRiskOverall ? '5px solid var(--color-danger)' : '5px solid var(--color-success)',
+            background: isAtRiskOverall ? 'rgba(197, 48, 48, 0.04)' : 'linear-gradient(135deg, rgba(47, 133, 90, 0.05) 0%, rgba(26, 54, 93, 0.05) 100%)'
+          }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
+                  {isAtRiskOverall ? (
+                    <AlertTriangle size={24} style={{ color: 'var(--color-danger)' }} />
+                  ) : (
+                    <CheckCircle2 size={24} style={{ color: 'var(--color-success)' }} />
+                  )}
+                  <h3 style={{ fontSize: '1.25rem', margin: 0, color: isAtRiskOverall ? 'var(--color-danger)' : 'var(--color-primary)' }}>
+                    {evaluatedCount === 0
+                      ? 'Academic Performance Standing Pending'
+                      : isAtRiskOverall
+                      ? '⚠️ AT-RISK ACADEMIC AREA DETECTED'
+                      : '🏆 GOOD STANDING ACADEMIC AREA'}
+                  </h3>
+                </div>
+                <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', margin: 0, maxWidth: '780px' }}>
+                  {evaluatedCount === 0
+                    ? 'Your lecturers have not submitted module evaluation marks yet. Check back soon after assignment or exam marking.'
+                    : isAtRiskOverall
+                    ? 'Your self-balancing AVL Tree ranking indicates you have at least 1 module with performance score < 50.0 or attendance < 70%. Academic intervention is recommended.'
+                    : 'Congratulations! You are maintained in the Good Standing area of the self-balanced AVL tree across your enrolled modules.'}
+                </p>
+              </div>
+
+              {evaluatedCount > 0 && (
+                <div style={{ textAlign: 'right', background: '#FFFFFF', padding: '0.85rem 1.25rem', borderRadius: '10px', boxShadow: 'var(--shadow-sm)', border: '1px solid var(--color-border)' }}>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 700 }}>
+                    Cumulative Score
+                  </div>
+                  <div style={{ fontSize: '1.6rem', fontWeight: 800, color: 'var(--color-primary)' }}>
+                    {averageScore} / 100
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* Subject Performance Breakdown Cards */}
+          <div className="scholastic-card">
+            <h3 style={{ fontSize: '1.2rem', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              <Calculator size={20} style={{ color: 'var(--color-secondary-hover)' }} />
+              Module Performance Breakdown & AVL Class Rankings
+            </h3>
+
+            {loading ? (
+              <div style={{ textAlign: 'center', padding: '2rem' }}>Loading academic performance records...</div>
+            ) : myPerformances.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '2.5rem 1rem', background: '#F8FAFC', borderRadius: '12px', border: '1px dashed var(--color-border)' }}>
+                <BookOpen size={32} style={{ color: 'var(--color-secondary)', marginBottom: '0.5rem' }} />
+                <h4 style={{ fontSize: '1rem', marginBottom: '0.3rem' }}>No Performance Evaluations Recorded Yet</h4>
+                <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', maxWidth: '480px', margin: '0 auto' }}>
+                  Your marks for enrolled modules will appear here once submitted by your lecturers.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '1.25rem' }}>
+                {myPerformances.map((perf) => {
+                  const isModAtRisk = perf.performanceScore < 50 || perf.attendancePercentage < 70 || perf.status === 'At Risk';
+                  return (
+                    <div 
+                      key={perf.id} 
+                      style={{ 
+                        border: '1px solid var(--color-border)', 
+                        borderRadius: '12px', 
+                        padding: '1.35rem', 
+                        background: '#FFFFFF', 
+                        boxShadow: 'var(--shadow-sm)',
+                        position: 'relative',
+                        borderTop: isModAtRisk ? '4px solid var(--color-danger)' : '4px solid var(--color-success)'
+                      }}
+                    >
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.75rem' }}>
+                        <div>
+                          <span className="badge-role badge-lecturer" style={{ fontSize: '0.8rem', fontWeight: 700 }}>
+                            {perf.moduleCode}
+                          </span>
+                          <h4 style={{ fontSize: '1.05rem', fontWeight: 700, margin: '0.3rem 0 0 0', color: 'var(--color-text-main)' }}>
+                            {perf.moduleName || perf.moduleCode}
+                          </h4>
+                        </div>
+
+                        <span className={`badge-role ${perf.performanceScore >= 85 ? 'badge-admin' : perf.performanceScore >= 65 ? 'badge-lecturer' : 'badge-student'}`}>
+                          {perf.performanceCategory}
+                        </span>
+                      </div>
+
+                      {/* Score Breakdown Table */}
+                      <div style={{ background: '#F8FAFC', padding: '0.85rem', borderRadius: '8px', border: '1px solid var(--color-border)', marginBottom: '1rem' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.5rem', textAlign: 'center' }}>
+                          <div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Assignment (30%)</div>
+                            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-primary)' }}>{perf.assignmentMarks}%</div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Exam (60%)</div>
+                            <div style={{ fontSize: '1rem', fontWeight: 700, color: 'var(--color-primary)' }}>{perf.examMarks}%</div>
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '0.7rem', color: 'var(--color-text-muted)', fontWeight: 600 }}>Attendance (10%)</div>
+                            <div style={{ fontSize: '1rem', fontWeight: 700, color: perf.attendancePercentage < 70 ? 'var(--color-danger)' : 'var(--color-primary)' }}>
+                              {perf.attendancePercentage}%
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* Overall Score & Rank Footer */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.6rem', borderTop: '1px solid var(--color-border)' }}>
+                        <div>
+                          <div style={{ fontSize: '0.75rem', color: 'var(--color-text-muted)' }}>Performance Score</div>
+                          <div style={{ fontSize: '1.4rem', fontWeight: 800, color: 'var(--color-primary)' }}>
+                            {perf.performanceScore} <span style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)', fontWeight: 500 }}>/ 100</span>
+                          </div>
+                        </div>
+
+                        <div>
+                          {isModAtRisk ? (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'var(--color-danger-bg)', color: 'var(--color-danger)', padding: '0.35rem 0.75rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 700 }}>
+                              ⚠️ At Risk Area
+                            </div>
+                          ) : (
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '0.3rem', background: 'rgba(47, 133, 90, 0.1)', color: 'var(--color-success)', padding: '0.35rem 0.75rem', borderRadius: '9999px', fontSize: '0.8rem', fontWeight: 700 }}>
+                              ✓ Good Standing Area
+                            </div>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab Content 2: Enrolled Subjects & Modules */}
       {activeTab === 'modules' && (
         <div className="scholastic-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
@@ -201,7 +411,7 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* Tab Content 2: Batch Information Details */}
+      {/* Tab Content 3: Batch Information Details */}
       {activeTab === 'batch' && (
         <div className="scholastic-card">
           <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -242,7 +452,7 @@ export default function StudentDashboard() {
         </div>
       )}
 
-      {/* Tab Content 3: Assigned Lecturers Section */}
+      {/* Tab Content 4: Assigned Lecturers Section */}
       {activeTab === 'lecturers' && (
         <div className="scholastic-card">
           <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
