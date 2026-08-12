@@ -22,6 +22,7 @@ export default function PerformanceEvaluation() {
   const [editingPerf, setEditingPerf] = useState(null);
 
   // Form State
+  const [modalBatchCode, setModalBatchCode] = useState('ALL');
   const [studentId, setStudentId] = useState('');
   const [studentName, setStudentName] = useState('');
   const [moduleCode, setModuleCode] = useState('');
@@ -65,6 +66,10 @@ export default function PerformanceEvaluation() {
 
   const assignedBatchCodes = user?.assignedBatchCodes || [];
 
+  const accessibleBatches = user?.role === 'ADMIN' || !user?.assignedBatchCodes || user.assignedBatchCodes.length === 0
+    ? batches
+    : batches.filter(b => user.assignedBatchCodes.includes(b.batchCode));
+
   // Filter students accessible to lecturer
   const accessibleStudents = user?.role === 'ADMIN'
     ? students
@@ -79,30 +84,46 @@ export default function PerformanceEvaluation() {
   const targetStudents = accessibleStudents.length > 0 ? accessibleStudents : students;
   const targetModules = accessibleModules.length > 0 ? accessibleModules : modules;
 
-  const openAddModal = () => {
-    setEditingPerf(null);
-    if (targetStudents.length > 0) {
-      const firstStd = targetStudents[0];
+  const displayModules = selectedBatchFilter === 'ALL'
+    ? targetModules
+    : targetModules.filter(m => m.batchCode === selectedBatchFilter);
+
+  const modalStudents = targetStudents.filter(s => modalBatchCode === 'ALL' || s.batchCode === modalBatchCode);
+  const modalModules = targetModules.filter(m => modalBatchCode === 'ALL' || m.batchCode === modalBatchCode);
+
+  const updateModalSelectionForBatch = (bCode, currentStudents = targetStudents, currentModules = targetModules) => {
+    const validStudents = currentStudents.filter(s => bCode === 'ALL' || s.batchCode === bCode);
+    const validModules = currentModules.filter(m => bCode === 'ALL' || m.batchCode === bCode);
+
+    if (validStudents.length > 0) {
+      const firstStd = validStudents[0];
       setStudentId(firstStd.staffOrStudentId && firstStd.staffOrStudentId.trim() !== '' ? firstStd.staffOrStudentId : (firstStd.email || firstStd.id));
       setStudentName(firstStd.name);
-      setBatchCode(firstStd.batchCode || '');
+      setBatchCode(firstStd.batchCode || bCode);
     } else {
       setStudentId('');
       setStudentName('');
-      setBatchCode('');
+      setBatchCode(bCode);
     }
 
-    if (targetModules.length > 0) {
-      const firstMod = targetModules[0];
+    if (validModules.length > 0) {
+      const firstMod = validModules[0];
       setModuleCode(firstMod.moduleCode);
       setModuleName(firstMod.moduleName);
-      if (!batchCode && firstMod.batchCode) {
-        setBatchCode(firstMod.batchCode);
-      }
     } else {
       setModuleCode('');
       setModuleName('');
     }
+  };
+
+  const openAddModal = () => {
+    setEditingPerf(null);
+    const initialBatch = selectedBatchFilter !== 'ALL'
+      ? selectedBatchFilter
+      : accessibleBatches.length > 0 ? accessibleBatches[0].batchCode : 'ALL';
+
+    setModalBatchCode(initialBatch);
+    updateModalSelectionForBatch(initialBatch);
 
     setAssignmentMarks(80);
     setExamMarks(80);
@@ -111,13 +132,20 @@ export default function PerformanceEvaluation() {
     setIsModalOpen(true);
   };
 
+  const handleModalBatchChange = (e) => {
+    const newBCode = e.target.value;
+    setModalBatchCode(newBCode);
+    setBatchCode(newBCode);
+    updateModalSelectionForBatch(newBCode);
+  };
+
   const handleStudentSelect = (e) => {
     const selectedStdId = e.target.value;
     const found = students.find(s => s.id === selectedStdId || s.staffOrStudentId === selectedStdId || s.email === selectedStdId);
     if (found) {
       setStudentId(found.staffOrStudentId && found.staffOrStudentId.trim() !== '' ? found.staffOrStudentId : (found.email || found.id));
       setStudentName(found.name);
-      setBatchCode(found.batchCode || '');
+      setBatchCode(found.batchCode || modalBatchCode);
     }
   };
 
@@ -253,7 +281,7 @@ export default function PerformanceEvaluation() {
             id="eval-filter-module"
           >
             <option value="ALL">All Modules</option>
-            {targetModules.map(m => (
+            {displayModules.map(m => (
               <option key={m.id} value={m.moduleCode}>
                 {m.moduleCode} - {m.moduleName}
               </option>
@@ -405,6 +433,24 @@ export default function PerformanceEvaluation() {
 
             <form onSubmit={handleSubmit}>
               <div className="form-group">
+                <label className="form-label">Select Batch Group *</label>
+                <select 
+                  className="form-control"
+                  value={modalBatchCode}
+                  onChange={handleModalBatchChange}
+                  required
+                  id="modal-eval-batch"
+                >
+                  <option value="ALL">All Batches</option>
+                  {accessibleBatches.map(b => (
+                    <option key={b.id} value={b.batchCode}>
+                      {b.batchCode} — {b.batchName} ({b.courseCode})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div className="form-group">
                 <label className="form-label">Select Student *</label>
                 <select 
                   className="form-control"
@@ -413,11 +459,15 @@ export default function PerformanceEvaluation() {
                   required
                   id="modal-eval-student"
                 >
-                  {targetStudents.map(s => (
-                    <option key={s.id} value={s.id}>
-                      {s.name} ({s.staffOrStudentId || s.email || s.id}) — Batch: {s.batchCode || 'N/A'}
-                    </option>
-                  ))}
+                  {modalStudents.length > 0 ? (
+                    modalStudents.map(s => (
+                      <option key={s.id} value={s.id}>
+                        {s.name} ({s.staffOrStudentId || s.email || s.id}) — Batch: {s.batchCode || 'N/A'}
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>No students enrolled in {modalBatchCode}</option>
+                  )}
                 </select>
               </div>
 
@@ -429,11 +479,15 @@ export default function PerformanceEvaluation() {
                   required
                   id="modal-eval-module"
                 >
-                  {targetModules.map(m => (
-                    <option key={m.id} value={m.id}>
-                      {m.moduleCode} - {m.moduleName} ({m.credits} Credits)
-                    </option>
-                  ))}
+                  {modalModules.length > 0 ? (
+                    modalModules.map(m => (
+                      <option key={m.id} value={m.id}>
+                        {m.moduleCode} - {m.moduleName} ({m.credits} Credits)
+                      </option>
+                    ))
+                  ) : (
+                    <option value="" disabled>No modules assigned for {modalBatchCode}</option>
+                  )}
                 </select>
               </div>
 
