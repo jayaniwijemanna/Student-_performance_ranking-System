@@ -9,6 +9,8 @@ public class AVLNode {
     private String batchCode;
     private String moduleCode;
     private String moduleName;
+    private String lecturerId;
+    private String lecturerName;
     private double assignmentMarks;
     private double examMarks;
     private double attendancePercentage;
@@ -25,7 +27,7 @@ public class AVLNode {
     }
 
     public AVLNode(String id, String studentId, String studentName, String courseCode, String batchCode,
-                   String moduleCode, String moduleName, double assignmentMarks, double examMarks,
+                   String moduleCode, String moduleName, String lecturerId, String lecturerName, double assignmentMarks, double examMarks,
                    double attendancePercentage, double performanceScore, String performanceCategory, String status) {
         this.id = id;
         this.studentId = studentId;
@@ -34,6 +36,8 @@ public class AVLNode {
         this.batchCode = batchCode;
         this.moduleCode = moduleCode;
         this.moduleName = moduleName;
+        this.lecturerId = lecturerId;
+        this.lecturerName = lecturerName;
         this.assignmentMarks = assignmentMarks;
         this.examMarks = examMarks;
         this.attendancePercentage = attendancePercentage;
@@ -97,6 +101,22 @@ public class AVLNode {
 
     public void setModuleName(String moduleName) {
         this.moduleName = moduleName;
+    }
+
+    public String getLecturerId() {
+        return lecturerId;
+    }
+
+    public void setLecturerId(String lecturerId) {
+        this.lecturerId = lecturerId;
+    }
+
+    public String getLecturerName() {
+        return lecturerName;
+    }
+
+    public void setLecturerName(String lecturerName) {
+        this.lecturerName = lecturerName;
     }
 
     public double getAssignmentMarks() {

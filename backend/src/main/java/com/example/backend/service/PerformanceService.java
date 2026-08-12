@@ -71,6 +71,15 @@ public class PerformanceService {
                 perfInput.getStudentId(), perfInput.getModuleCode()
         );
 
+        // Verify student name consistency so different students sharing an ID never overwrite each other
+        if (existingOpt.isPresent()) {
+            StudentPerformance ex = existingOpt.get();
+            if (ex.getStudentName() != null && perfInput.getStudentName() != null &&
+                !ex.getStudentName().trim().equalsIgnoreCase(perfInput.getStudentName().trim())) {
+                existingOpt = Optional.empty(); // Treat as new record
+            }
+        }
+
         StudentPerformance saved;
         if (existingOpt.isPresent()) {
             StudentPerformance existing = existingOpt.get();
@@ -88,6 +97,7 @@ public class PerformanceService {
             existing.setStatus(status);
             saved = performanceRepository.save(existing);
         } else {
+            perfInput.setId(null);
             saved = performanceRepository.save(perfInput);
         }
 
@@ -103,8 +113,8 @@ public class PerformanceService {
         List<Map<String, Object>> rankedList = new ArrayList<>();
         int rank = 1;
         for (AVLNode n : sortedNodes) {
-            boolean matchesBatch = (batchCode == null || batchCode.isEmpty() || "ALL".equalsIgnoreCase(batchCode) || batchCode.equals(n.getBatchCode()));
-            boolean matchesModule = (moduleCode == null || moduleCode.isEmpty() || "ALL".equalsIgnoreCase(moduleCode) || moduleCode.equals(n.getModuleCode()));
+            boolean matchesBatch = matchesFilter(batchCode, n.getBatchCode());
+            boolean matchesModule = matchesFilter(moduleCode, n.getModuleCode());
 
             if (matchesBatch && matchesModule) {
                 Map<String, Object> map = new HashMap<>();
@@ -116,6 +126,8 @@ public class PerformanceService {
                 map.put("batchCode", n.getBatchCode());
                 map.put("moduleCode", n.getModuleCode());
                 map.put("moduleName", n.getModuleName());
+                map.put("lecturerId", n.getLecturerId());
+                map.put("lecturerName", n.getLecturerName());
                 map.put("assignmentMarks", n.getAssignmentMarks());
                 map.put("examMarks", n.getExamMarks());
                 map.put("attendancePercentage", n.getAttendancePercentage());
@@ -132,8 +144,8 @@ public class PerformanceService {
         List<AVLNode> matches = avlTree.searchByScore(score);
         List<AVLNode> filtered = new ArrayList<>();
         for (AVLNode n : matches) {
-            boolean matchesBatch = (batchCode == null || batchCode.isEmpty() || "ALL".equalsIgnoreCase(batchCode) || batchCode.equals(n.getBatchCode()));
-            boolean matchesModule = (moduleCode == null || moduleCode.isEmpty() || "ALL".equalsIgnoreCase(moduleCode) || moduleCode.equals(n.getModuleCode()));
+            boolean matchesBatch = matchesFilter(batchCode, n.getBatchCode());
+            boolean matchesModule = matchesFilter(moduleCode, n.getModuleCode());
 
             if (matchesBatch && matchesModule) {
                 filtered.add(n);
@@ -150,8 +162,8 @@ public class PerformanceService {
         AVLTree filteredTree = new AVLTree();
         List<StudentPerformance> allRecords = performanceRepository.findAll();
         for (StudentPerformance perf : allRecords) {
-            boolean matchesBatch = (batchCode == null || batchCode.isEmpty() || "ALL".equalsIgnoreCase(batchCode) || batchCode.equals(perf.getBatchCode()));
-            boolean matchesModule = (moduleCode == null || moduleCode.isEmpty() || "ALL".equalsIgnoreCase(moduleCode) || moduleCode.equals(perf.getModuleCode()));
+            boolean matchesBatch = matchesFilter(batchCode, perf.getBatchCode());
+            boolean matchesModule = matchesFilter(moduleCode, perf.getModuleCode());
 
             if (matchesBatch && matchesModule) {
                 AVLNode node = convertToAVLNode(perf);
@@ -159,6 +171,16 @@ public class PerformanceService {
             }
         }
         return filteredTree.toTreeGraph();
+    }
+
+    private boolean matchesFilter(String filterVal, String recordVal) {
+        if (filterVal == null || filterVal.trim().isEmpty() || "ALL".equalsIgnoreCase(filterVal.trim())) {
+            return true;
+        }
+        if (recordVal == null) {
+            return false;
+        }
+        return filterVal.trim().equalsIgnoreCase(recordVal.trim());
     }
 
     public void deletePerformance(String id) {
@@ -178,6 +200,8 @@ public class PerformanceService {
                 perf.getBatchCode(),
                 perf.getModuleCode(),
                 perf.getModuleName(),
+                perf.getLecturerId(),
+                perf.getLecturerName(),
                 perf.getAssignmentMarks(),
                 perf.getExamMarks(),
                 perf.getAttendancePercentage(),

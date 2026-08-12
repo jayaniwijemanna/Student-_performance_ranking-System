@@ -50,7 +50,22 @@ public class AuthService {
         user.setPassword(passwordEncoder.encode(request.getPassword()));
         user.setRole(userRole);
         user.setDepartment(request.getDepartment() != null ? request.getDepartment() : "General Academic");
-        user.setStaffOrStudentId(request.getStaffOrStudentId());
+        
+        if (request.getStaffOrStudentId() != null && !request.getStaffOrStudentId().trim().isEmpty()) {
+            String sid = request.getStaffOrStudentId().trim();
+            if (userRepository.existsByStaffOrStudentId(sid)) {
+                return AuthResponse.error("Staff/Student ID '" + sid + "' is already registered to another user.");
+            }
+            user.setStaffOrStudentId(sid);
+        } else {
+            String prefix = userRole == Role.STUDENT ? "ST" : "LEC";
+            String generatedId = prefix + String.format("%04d", (int)(Math.random() * 9000) + 1000);
+            while (userRepository.existsByStaffOrStudentId(generatedId)) {
+                generatedId = prefix + String.format("%04d", (int)(Math.random() * 9000) + 1000);
+            }
+            user.setStaffOrStudentId(generatedId);
+        }
+
         user.setBatchId(request.getBatchId());
         user.setBatchCode(request.getBatchCode());
         if (request.getAssignedBatchIds() != null) user.setAssignedBatchIds(request.getAssignedBatchIds());

@@ -21,12 +21,15 @@ public class PerformanceSeeder implements CommandLineRunner {
         if (performanceRepository.count() == 0) {
             System.out.println("Seeding sample student evaluations into AVL Tree...");
 
-            // 5 Sample Students per SRS example
-            saveSample("ST001", "Amal Perera", "SE202", "SE-2024-B1", "DSA301", "Data Structures & Algorithms", 90.0, 92.0, 95.0);
-            saveSample("ST002", "Kamal Silva", "SE202", "SE-2024-B1", "DSA301", "Data Structures & Algorithms", 80.0, 85.0, 90.0);
-            saveSample("ST003", "Sunil Fernando", "SE202", "SE-2024-B1", "DSA301", "Data Structures & Algorithms", 75.0, 75.0, 80.0);
-            saveSample("ST004", "Nimal Wickrama", "SE202", "SE-2024-B1", "DSA301", "Data Structures & Algorithms", 65.0, 68.0, 75.0);
-            saveSample("ST005", "Kasun Jayasinghe", "SE202", "SE-2024-B1", "DSA301", "Data Structures & Algorithms", 40.0, 45.0, 60.0);
+            // Sample Students for DSA1 evaluation ranking demonstration
+            saveSample("ST001", "Amal Perera", "SE202", "DS-2024-B1", "DSA1", "Data Structures and Algorithm", 90.0, 92.0, 95.0);
+            saveSample("ST002", "Kamal Silva", "SE202", "DS-2024-B1", "DSA1", "Data Structures and Algorithm", 80.0, 85.0, 90.0);
+            saveSample("ST003", "Sunil Fernando", "SE202", "DS-2024-B1", "DSA1", "Data Structures and Algorithm", 75.0, 75.0, 80.0);
+            saveSample("ST004", "Nimal Wickrama", "SE202", "DS-2024-B1", "DSA1", "Data Structures and Algorithm", 65.0, 68.0, 75.0);
+            saveSample("ST005", "Kasun Jayasinghe", "SE202", "DS-2024-B1", "DSA1", "Data Structures and Algorithm", 40.0, 45.0, 60.0);
+            saveSample("ST007", "Kavindu Perera", "SE202", "DS-2024-B1", "DSA1", "Data Structures and Algorithm", 88.0, 90.0, 92.0);
+            saveSample("ST008", "Nuwan Pradeep", "SE202", "DS-2024-B1", "DSA1", "Data Structures and Algorithm", 78.0, 81.0, 85.0);
+            saveSample("ST010", "Dilshan Madushanka", "SE202", "DS-2024-B1", "DSA1", "Data Structures and Algorithm", 72.0, 70.0, 79.0);
 
             performanceService.rebuildAVLTree();
             System.out.println("Sample student performance records seeded & AVL Tree self-balanced successfully!");

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Award, Search, AlertTriangle, Layers, BookOpen, RefreshCw, GitCommit, ChevronRight } from 'lucide-react';
+import { Award, Search, AlertTriangle, Layers, BookOpen, RefreshCw, GitCommit, ChevronRight, ZoomIn, ZoomOut, Minimize2 } from 'lucide-react';
 
 export default function AVLTreeRankings() {
   const { user } = useAuth();
@@ -14,6 +14,7 @@ export default function AVLTreeRankings() {
   const [selectedModuleFilter, setSelectedModuleFilter] = useState('ALL');
   const [batches, setBatches] = useState([]);
   const [modules, setModules] = useState([]);
+  const [treeZoom, setTreeZoom] = useState(85); // Default scale 85% for clear fit
 
   useEffect(() => {
     fetchRankingsAndTree();
@@ -47,9 +48,25 @@ export default function AVLTreeRankings() {
         const bData = await bRes.json();
         const mData = await mRes.json();
 
-        setRankings(rData);
+        const assignedBatchCodes = user?.assignedBatchCodes || [];
+        const hasBatchRestrictions = user?.role === 'LECTURER' && assignedBatchCodes.length > 0;
+
+        // Filter rankings for lecturer scope
+        const finalRankings = hasBatchRestrictions
+          ? rData.filter(r => (r.lecturerId && r.lecturerId === user?.id) || assignedBatchCodes.includes(r.batchCode))
+          : rData;
+
+        // Filter at-risk list for lecturer scope and active batch/module filters
+        const finalAtRisk = aData.filter(a => {
+          const matchesLecturer = !hasBatchRestrictions || (a.lecturerId && a.lecturerId === user?.id) || assignedBatchCodes.includes(a.batchCode);
+          const matchesBatch = selectedBatchFilter === 'ALL' || a.batchCode === selectedBatchFilter;
+          const matchesModule = selectedModuleFilter === 'ALL' || a.moduleCode === selectedModuleFilter;
+          return matchesLecturer && matchesBatch && matchesModule;
+        });
+
+        setRankings(finalRankings);
         setTreeGraph(tData);
-        setAtRiskList(aData);
+        setAtRiskList(finalAtRisk);
         setBatches(bData);
         setModules(mData);
       }
@@ -164,6 +181,16 @@ export default function AVLTreeRankings() {
       </div>
     );
   };
+
+  const displayRankings = rankings.filter(r => {
+    const matchesBatch = selectedBatchFilter === 'ALL' || (r.batchCode && r.batchCode.trim().toLowerCase() === selectedBatchFilter.trim().toLowerCase());
+    const matchesModule = selectedModuleFilter === 'ALL' || (r.moduleCode && r.moduleCode.trim().toLowerCase() === selectedModuleFilter.trim().toLowerCase());
+    return matchesBatch && matchesModule;
+  });
+
+  const displayTreeGraph = (selectedModuleFilter !== 'ALL' && displayRankings.length === 0)
+    ? null
+    : treeGraph;
 
   return (
     <div>
@@ -300,14 +327,14 @@ export default function AVLTreeRankings() {
                 <tr>
                   <td colSpan="10" style={{ textAlign: 'center', padding: '2rem' }}>Executing Reverse In-Order Traversal...</td>
                 </tr>
-              ) : rankings.length === 0 ? (
+              ) : displayRankings.length === 0 ? (
                 <tr>
                   <td colSpan="10" style={{ textAlign: 'center', padding: '2rem', color: 'var(--color-text-muted)' }}>
-                    No ranked records found in AVL Tree.
+                    No performance records entered for the selected filter ({selectedBatchFilter !== 'ALL' ? `Batch: ${selectedBatchFilter}` : ''} {selectedModuleFilter !== 'ALL' ? `Module: ${selectedModuleFilter}` : ''}).
                   </td>
                 </tr>
               ) : (
-                rankings.map((r) => (
+                displayRankings.map((r, index) => (
                   <tr key={r.id} style={{ backgroundColor: r.rank === 1 ? 'rgba(214, 158, 46, 0.08)' : 'transparent' }}>
                     <td>
                       {r.rank === 1 ? (
@@ -364,7 +391,7 @@ export default function AVLTreeRankings() {
 
       {/* Visual AVL Tree Structure (For Viva Demo) */}
       <div className="scholastic-card" style={{ marginBottom: '2rem' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '1rem' }}>
           <div>
             <h3 style={{ fontSize: '1.2rem', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
               <GitCommit size={20} style={{ color: 'var(--color-primary)' }} />
@@ -375,17 +402,77 @@ export default function AVLTreeRankings() {
             </p>
           </div>
 
-          <span className="badge-role badge-admin" style={{ background: 'rgba(47, 133, 90, 0.1)', color: 'var(--color-success)' }}>
-            ✓ Tree Balanced (|BF| ≤ 1)
-          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', flexWrap: 'wrap' }}>
+            <span className="badge-role badge-admin" style={{ background: 'rgba(47, 133, 90, 0.1)', color: 'var(--color-success)', marginRight: '0.25rem' }}>
+              ✓ Tree Balanced (|BF| ≤ 1)
+            </span>
+
+            {/* Tree Zoom Controls */}
+            <div style={{ display: 'flex', alignItems: 'center', background: '#EDF2F7', padding: '0.25rem', borderRadius: '8px', border: '1px solid var(--color-border)' }}>
+              <button 
+                type="button" 
+                className="btn btn-outlined btn-sm" 
+                style={{ padding: '0.25rem 0.5rem', height: '28px' }}
+                onClick={() => setTreeZoom(prev => Math.max(40, prev - 15))}
+                title="Zoom Out Tree"
+                id="btn-tree-zoom-out"
+              >
+                <ZoomOut size={14} />
+              </button>
+
+              <span style={{ fontSize: '0.8rem', fontWeight: 700, padding: '0 0.5rem', color: 'var(--color-primary)', minWidth: '45px', textAlign: 'center' }}>
+                {treeZoom}%
+              </span>
+
+              <button 
+                type="button" 
+                className="btn btn-outlined btn-sm" 
+                style={{ padding: '0.25rem 0.5rem', height: '28px' }}
+                onClick={() => setTreeZoom(prev => Math.min(200, prev + 15))}
+                title="Zoom In Tree"
+                id="btn-tree-zoom-in"
+              >
+                <ZoomIn size={14} />
+              </button>
+
+              <button 
+                type="button" 
+                className="btn btn-outlined btn-sm" 
+                style={{ padding: '0.25rem 0.5rem', height: '28px', marginLeft: '0.3rem', fontSize: '0.75rem' }}
+                onClick={() => setTreeZoom(100)}
+                title="Reset Zoom to 100%"
+                id="btn-tree-zoom-100"
+              >
+                100%
+              </button>
+
+              <button 
+                type="button" 
+                className="btn btn-outlined btn-sm" 
+                style={{ padding: '0.25rem 0.5rem', height: '28px', marginLeft: '0.2rem', fontSize: '0.75rem' }}
+                onClick={() => setTreeZoom(65)}
+                title="Fit Tree to Viewport"
+                id="btn-tree-zoom-fit"
+              >
+                <Minimize2 size={12} style={{ marginRight: '2px' }} /> Fit
+              </button>
+            </div>
+          </div>
         </div>
 
-        <div style={{ overflowX: 'auto', padding: '1.5rem', background: '#F8FAFC', borderRadius: '12px', border: '1px solid var(--color-border)', minHeight: '220px', display: 'flex', justifyContent: 'center' }}>
-          {treeGraph ? (
-            renderTreeNode(treeGraph)
+        <div style={{ overflowX: 'auto', padding: '1.5rem', background: '#F8FAFC', borderRadius: '12px', border: '1px solid var(--color-border)', minHeight: '260px', display: 'flex', justifyContent: 'center' }}>
+          {displayTreeGraph && displayTreeGraph.studentId ? (
+            <div style={{ 
+              transform: `scale(${treeZoom / 100})`, 
+              transformOrigin: 'top center',
+              transition: 'transform 0.2s ease-in-out',
+              display: 'inline-block'
+            }}>
+              {renderTreeNode(displayTreeGraph)}
+            </div>
           ) : (
             <div style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              No AVL Tree nodes available. Enter student marks to populate tree.
+              No performance records entered for the selected module ({selectedModuleFilter !== 'ALL' ? selectedModuleFilter : 'Selected Filter'}). Click "Enter Student Marks" to evaluate students.
             </div>
           )}
         </div>

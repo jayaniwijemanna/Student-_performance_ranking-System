@@ -83,7 +83,7 @@ export default function PerformanceEvaluation() {
     setEditingPerf(null);
     if (targetStudents.length > 0) {
       const firstStd = targetStudents[0];
-      setStudentId(firstStd.staffOrStudentId || firstStd.email || firstStd.id);
+      setStudentId(firstStd.staffOrStudentId && firstStd.staffOrStudentId.trim() !== '' ? firstStd.staffOrStudentId : (firstStd.email || firstStd.id));
       setStudentName(firstStd.name);
       setBatchCode(firstStd.batchCode || '');
     } else {
@@ -115,7 +115,7 @@ export default function PerformanceEvaluation() {
     const selectedStdId = e.target.value;
     const found = students.find(s => s.id === selectedStdId || s.staffOrStudentId === selectedStdId || s.email === selectedStdId);
     if (found) {
-      setStudentId(found.staffOrStudentId || found.email || found.id);
+      setStudentId(found.staffOrStudentId && found.staffOrStudentId.trim() !== '' ? found.staffOrStudentId : (found.email || found.id));
       setStudentName(found.name);
       setBatchCode(found.batchCode || '');
     }
