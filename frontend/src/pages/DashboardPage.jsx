@@ -6,6 +6,8 @@ import LecturerManager from '../components/LecturerManager';
 import StudentManager from '../components/StudentManager';
 import LecturerDashboard from '../components/LecturerDashboard';
 import StudentDashboard from '../components/StudentDashboard';
+import PerformanceEvaluation from '../components/PerformanceEvaluation';
+import AVLTreeRankings from '../components/AVLTreeRankings';
 import { 
   Users, 
   ShieldCheck, 
@@ -13,7 +15,9 @@ import {
   Database, 
   Layers,
   CheckCircle2,
-  GraduationCap
+  GraduationCap,
+  Award,
+  Calculator
 } from 'lucide-react';
 
 export default function DashboardPage() {
@@ -24,7 +28,7 @@ export default function DashboardPage() {
   const [activeRoleFilter, setActiveRoleFilter] = useState('ALL');
 
   // Admin Sub-Tab State
-  const [adminTab, setAdminTab] = useState('lecturers'); // 'lecturers' | 'students' | 'courses' | 'batches' | 'users'
+  const [adminTab, setAdminTab] = useState('rankings'); // 'rankings' | 'evaluations' | 'lecturers' | 'students' | 'courses' | 'batches' | 'users'
 
   useEffect(() => {
     fetchMongoHealth();
@@ -153,6 +157,24 @@ export default function DashboardPage() {
           {/* Admin Navigation Tabs */}
           <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem', flexWrap: 'wrap' }}>
             <button 
+              className={`btn ${adminTab === 'rankings' ? 'btn-primary' : 'btn-outlined'}`}
+              onClick={() => setAdminTab('rankings')}
+              id="admin-tab-rankings"
+            >
+              <Award size={16} />
+              AVL Tree Rankings
+            </button>
+
+            <button 
+              className={`btn ${adminTab === 'evaluations' ? 'btn-primary' : 'btn-outlined'}`}
+              onClick={() => setAdminTab('evaluations')}
+              id="admin-tab-evaluations"
+            >
+              <Calculator size={16} />
+              Performance Evaluation
+            </button>
+
+            <button 
               className={`btn ${adminTab === 'lecturers' ? 'btn-primary' : 'btn-outlined'}`}
               onClick={() => setAdminTab('lecturers')}
               id="admin-tab-lecturers"
@@ -197,6 +219,20 @@ export default function DashboardPage() {
               All Users Directory
             </button>
           </div>
+
+          {/* Tab Content: AVL Tree Rankings */}
+          {adminTab === 'rankings' && (
+            <div className="scholastic-card">
+              <AVLTreeRankings />
+            </div>
+          )}
+
+          {/* Tab Content: Performance Evaluation */}
+          {adminTab === 'evaluations' && (
+            <div className="scholastic-card">
+              <PerformanceEvaluation />
+            </div>
+          )}
 
           {/* Tab Content: Lecturer Management */}
           {adminTab === 'lecturers' && (

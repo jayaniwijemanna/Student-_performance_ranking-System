@@ -1,9 +1,60 @@
-import React, { useState } from 'react';
+import React, { useState, Component } from 'react';
 import { AuthProvider, useAuth } from './context/AuthContext';
 import Navbar from './components/Navbar';
 import SignInPage from './pages/SignInPage';
 import SignUpPage from './pages/SignUpPage';
 import DashboardPage from './pages/DashboardPage';
+import { AlertCircle, RefreshCw } from 'lucide-react';
+
+class ErrorBoundary extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error, errorInfo) {
+    console.error('Unhandled Application Error:', error, errorInfo);
+  }
+
+  handleReset = () => {
+    localStorage.removeItem('scholastic_user');
+    localStorage.removeItem('scholastic_token');
+    window.location.reload();
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div style={{
+          maxWidth: '540px',
+          margin: '5rem auto',
+          padding: '2rem',
+          backgroundColor: '#FFFFFF',
+          borderRadius: '16px',
+          boxShadow: 'var(--shadow-xl)',
+          textAlign: 'center',
+          border: '1px solid var(--color-border)'
+        }}>
+          <AlertCircle size={48} style={{ color: 'var(--color-danger)', marginBottom: '1rem' }} />
+          <h2 style={{ fontSize: '1.5rem', marginBottom: '0.5rem', color: 'var(--color-primary)' }}>
+            Application Session Recovered
+          </h2>
+          <p style={{ fontSize: '0.9rem', color: 'var(--color-text-muted)', marginBottom: '1.5rem' }}>
+            A temporary session parsing issue occurred ({this.state.error?.message || 'Unknown error'}). Click below to clear stored state and restore your sign-in view.
+          </p>
+          <button className="btn btn-primary" onClick={this.handleReset} style={{ width: '100%' }}>
+            <RefreshCw size={16} /> Restore & Refresh Session
+          </button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
 
 function MainLayout() {
   const { user } = useAuth();
@@ -44,8 +95,10 @@ function MainLayout() {
 
 export default function App() {
   return (
-    <AuthProvider>
-      <MainLayout />
-    </AuthProvider>
+    <ErrorBoundary>
+      <AuthProvider>
+        <MainLayout />
+      </AuthProvider>
+    </ErrorBoundary>
   );
 }

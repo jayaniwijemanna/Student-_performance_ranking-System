@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
 import ModuleManager from './ModuleManager';
-import { Layers, Users, BookOpen, Search, AlertCircle, Award, CheckCircle2 } from 'lucide-react';
+import PerformanceEvaluation from './PerformanceEvaluation';
+import AVLTreeRankings from './AVLTreeRankings';
+import { Layers, Users, BookOpen, Search, AlertCircle, Award, Calculator, GitCommit } from 'lucide-react';
 
 export default function LecturerDashboard() {
   const { user } = useAuth();
@@ -12,7 +14,7 @@ export default function LecturerDashboard() {
   const [selectedBatchFilter, setSelectedBatchFilter] = useState('ALL');
 
   // Lecturer Sub-Tab State
-  const [activeTab, setActiveTab] = useState('modules'); // 'modules' | 'batches' | 'students'
+  const [activeTab, setActiveTab] = useState('evaluations'); // 'evaluations' | 'rankings' | 'modules' | 'batches' | 'students'
 
   useEffect(() => {
     fetchLecturerData();
@@ -108,6 +110,24 @@ export default function LecturerDashboard() {
       {/* Lecturer Navigation Tabs */}
       <div style={{ display: 'flex', gap: '0.6rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--color-border)', paddingBottom: '0.75rem', flexWrap: 'wrap' }}>
         <button 
+          className={`btn ${activeTab === 'evaluations' ? 'btn-primary' : 'btn-outlined'}`}
+          onClick={() => setActiveTab('evaluations')}
+          id="lecturer-tab-evaluations"
+        >
+          <Calculator size={16} />
+          Performance Evaluation
+        </button>
+
+        <button 
+          className={`btn ${activeTab === 'rankings' ? 'btn-primary' : 'btn-outlined'}`}
+          onClick={() => setActiveTab('rankings')}
+          id="lecturer-tab-rankings"
+        >
+          <Award size={16} />
+          AVL Tree Rankings
+        </button>
+
+        <button 
           className={`btn ${activeTab === 'modules' ? 'btn-primary' : 'btn-outlined'}`}
           onClick={() => setActiveTab('modules')}
           id="lecturer-tab-modules"
@@ -135,14 +155,28 @@ export default function LecturerDashboard() {
         </button>
       </div>
 
-      {/* Tab Content: Subject / Module Management */}
+      {/* Tab Content 1: Performance Evaluation (Enter Marks) */}
+      {activeTab === 'evaluations' && (
+        <div className="scholastic-card">
+          <PerformanceEvaluation />
+        </div>
+      )}
+
+      {/* Tab Content 2: AVL Tree Rankings */}
+      {activeTab === 'rankings' && (
+        <div className="scholastic-card">
+          <AVLTreeRankings />
+        </div>
+      )}
+
+      {/* Tab Content 3: Subject / Module Management */}
       {activeTab === 'modules' && (
         <div className="scholastic-card">
           <ModuleManager />
         </div>
       )}
 
-      {/* Tab Content: Assigned Batches View */}
+      {/* Tab Content 4: Assigned Batches View */}
       {activeTab === 'batches' && (
         <div className="scholastic-card">
           <h3 style={{ fontSize: '1.2rem', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
@@ -194,7 +228,7 @@ export default function LecturerDashboard() {
         </div>
       )}
 
-      {/* Tab Content: Student Roster View */}
+      {/* Tab Content 5: Student Roster View */}
       {activeTab === 'students' && (
         <div className="scholastic-card">
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '1rem' }}>
