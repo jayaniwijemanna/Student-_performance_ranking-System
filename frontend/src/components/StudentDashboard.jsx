@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
+import PerformanceHistory from './PerformanceHistory';
 import { 
   BookOpen, 
   Layers, 
@@ -13,7 +14,8 @@ import {
   AlertTriangle,
   TrendingUp,
   Calculator,
-  ShieldCheck
+  ShieldCheck,
+  History
 } from 'lucide-react';
 
 export default function StudentDashboard() {
@@ -208,6 +210,15 @@ export default function StudentDashboard() {
         >
           <Users size={16} />
           Assigned Faculty & Lecturers
+        </button>
+
+        <button 
+          className={`btn ${activeTab === 'history' ? 'btn-primary' : 'btn-outlined'}`}
+          onClick={() => setActiveTab('history')}
+          id="student-tab-history"
+        >
+          <History size={16} />
+          Performance History
         </button>
       </div>
 
@@ -540,6 +551,13 @@ export default function StudentDashboard() {
               ))}
             </div>
           )}
+        </div>
+      )}
+
+      {/* Tab Content: Performance History (Singly Linked List) */}
+      {activeTab === 'history' && (
+        <div className="scholastic-card">
+          <PerformanceHistory viewMode="student" />
         </div>
       )}
     </div>

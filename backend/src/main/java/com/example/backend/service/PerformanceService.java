@@ -15,11 +15,15 @@ import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
+
 @Service
 public class PerformanceService {
 
     @Autowired
     private StudentPerformanceRepository performanceRepository;
+
+    @Autowired
+    private PerformanceHistoryService historyService;
 
     private final AVLTree avlTree = new AVLTree();
 
@@ -96,9 +100,15 @@ public class PerformanceService {
             existing.setPerformanceCategory(category);
             existing.setStatus(status);
             saved = performanceRepository.save(existing);
+
+            // Record history entry in Singly Linked List tracker — action: UPDATED
+            historyService.recordHistory(saved, "UPDATED");
         } else {
             perfInput.setId(null);
             saved = performanceRepository.save(perfInput);
+
+            // Record history entry in Singly Linked List tracker — action: CREATED
+            historyService.recordHistory(saved, "CREATED");
         }
 
         // Rebuild / Update AVL Tree

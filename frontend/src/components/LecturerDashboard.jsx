@@ -3,7 +3,8 @@ import { useAuth } from '../context/AuthContext';
 import ModuleManager from './ModuleManager';
 import PerformanceEvaluation from './PerformanceEvaluation';
 import AVLTreeRankings from './AVLTreeRankings';
-import { Layers, Users, BookOpen, Search, AlertCircle, Award, Calculator, GitCommit } from 'lucide-react';
+import PerformanceHistory from './PerformanceHistory';
+import { Layers, Users, BookOpen, Search, AlertCircle, Award, Calculator, GitCommit, History } from 'lucide-react';
 
 export default function LecturerDashboard() {
   const { user } = useAuth();
@@ -152,6 +153,15 @@ export default function LecturerDashboard() {
         >
           <Users size={16} />
           Student Roster
+        </button>
+
+        <button 
+          className={`btn ${activeTab === 'history' ? 'btn-primary' : 'btn-outlined'}`}
+          onClick={() => setActiveTab('history')}
+          id="lecturer-tab-history"
+        >
+          <History size={16} />
+          Performance History
         </button>
       </div>
 
@@ -318,6 +328,13 @@ export default function LecturerDashboard() {
               </tbody>
             </table>
           </div>
+        </div>
+      )}
+
+      {/* Tab Content 6: Performance History (Singly Linked List) */}
+      {activeTab === 'history' && (
+        <div className="scholastic-card">
+          <PerformanceHistory viewMode="lecturer" />
         </div>
       )}
     </div>
