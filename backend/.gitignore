@@ -1,0 +1,34 @@
+# Spring Boot / Gradle build output
+.gradle/
+build/
+out/
+bin/
+HELP.md
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# IDE & Editor files
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+.settings/
+.classpath
+.project
+.factorypath
+.springBeans
+.sts4-cache
+.apt_generated
+
+# Logs & temp files
+*.log
+.DS_Store
+Thumbs.db
