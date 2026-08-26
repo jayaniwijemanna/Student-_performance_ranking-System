@@ -9,7 +9,7 @@
 3. Literature Review
 4. Proposed Solution
 5. System Functionalities
-6. Selected Data Structures and Justifications
+6. Selected Data Structures and Justifications 
 7. Novel Features
 8. Technologies Used
 9. Selling Points of the Application
